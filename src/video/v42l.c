@@ -1,4 +1,4 @@
-#include <fcntl.h> // open
+include <fcntl.h> // open
 #include <unistd.h> // read/write/close
 #include <stdio.h> // I/O printf
 #include <sys/ioctl.h>
@@ -48,6 +48,19 @@ int main() {
 	// then make changes as needed
 	// fmt.fmt.pix.width = x, ....
 	// query = ioctl(fd, VIDEOC_S_FMT, &fmt);
+
+
+	// request buffers
+	struct v4l2_requestbuffers req {0};
+	req.count = 5; // adjust this as needed
+	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE; // using multi-planar not single-planr
+	req.memory = V4L2_MEMORY_DMABUF
+
+	query = ioctl(fd, VIDIOC_REQBUFS, &req);
+	if (query == -1) {
+		fprintf(stderr, "Error requesting buffers: %s\n", DEVICE);
+		exit(EXIT_FAILURE);
+	}
 	
 	// close fd
 	query = close(fd);
