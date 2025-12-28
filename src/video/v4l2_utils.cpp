@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 
+namespace jetson_middleware {
+
 const char* ioctl_to_str(unsigned long code) {
 	switch (code) {
 		case VIDIOC_QUERYCAP:   return "VIDIOC_QUERYCAP";
@@ -33,4 +35,6 @@ int xioctl(int fd, unsigned long code, void* arg) {
 	}
 
 	return retval;
+}
+
 }
