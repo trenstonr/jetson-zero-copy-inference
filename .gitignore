@@ -43,3 +43,6 @@
 # g++ compiled files
 *.out
 *.exe
+
+# build dir
+/build/
