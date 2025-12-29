@@ -39,6 +39,9 @@ private:
 	std::vector<DeviceBuffer> _buffers;		// buffer pool
 
 	void _set_format(); // (v4l2_format, VIDIOC_S_FMT)
+	
+	void _set_params(const char* path, uint32_t width, uint32_t height);
+	void _validate_capabilities(int fd);
 };
 
 }
