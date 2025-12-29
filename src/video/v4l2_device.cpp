@@ -12,6 +12,8 @@
 #include <errno.h>
 #include <string.h> 	// strerror()
 
+#include <cuda_runtime.h>
+
 namespace jetson_middleware { 
 
 V4L2Device::V4L2Device(const char* path, uint32_t width, uint32_t height)
@@ -56,7 +58,34 @@ V4L2Device::~V4L2Device() {
 }
 
 void V4L2Device::request_buffers(uint32_t count) {
+	if (!count) {} // err
+	if (!_buffers.empty()) {} // err
 	
+	// request buffers //
+	v4l2_requestbuffers req {};
+	req.count = count;
+	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	req.memory = V4L2_MEMORY_USERPTR; // user pointers to pass to allocate via cuda
+	
+	if (xioctl(fd_, VIDIOC_REQBUFS, &req) < 0) {} // err
+	if (req.count < count) {
+		// driver can alter req
+		count = req.count;
+		if (!count) {} // err
+	}
+
+	_buffers.resize(count);
+
+	// allocate buffers to gpu memory //
+	for (uint32_t i = 0; i < count; ++i) {
+		DeviceBuffer& b = _buffers[i];
+		b.index = i;
+		// b.size = ???; bytes/frame -- probably calculate with pixelformat/width/height
+		b.host_ptr = nullptr;
+		b.device_ptr = nullptr;
+
+				
+	}
 }
 
 void V4L2Device::enqueue_frame() {}
@@ -67,56 +96,5 @@ void V4L2Device::start_stream() {}
 
 void V4L2Device::stop_stream() {}
 
-void V4L2Device::_set_format() {
-	v4l2_format fmt;
-
-	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	fmt.fmt.pix.width = _width;
-	fmt.fmt.pix.height = _height;
-	// fmt.fmt.pixelformat = V4L2_PIX_FMT_UYVY;
-	// fmt.fmt.field = V4L2_FIELD_INTERLACED;
-
-	if (xioctl(_fd, VIDIOC_S_FMT, &fmt) == -1) throw std::runtime_error("FORMAT");
-
-	// VIDIOC_S_FMT may alter fmt. probably verify width/height after
-}
-
-void _set_params(const char* path, uint32_t width, uint32_t height) {
-	const std::filesystem::path dir(path);
-
-	if (!std::filesystem::exists(dir)) {
-		std::cerr << path << " does not exist\n";
-		throw std::runtime_error("PATH");
-	}
-	_path = path;
-
-	if (width < 1) {
-		std::cerr << "Frame width must be at least 1px\n";
-		throw std::runtime_error("WIDTH");
-	}
-	_width = width;
-
-	if (height < 1) {
-		std::cerr << "Frame height must be at least 1px\n";
-		throw std::runtime_error("HEIGHT");
-	}
-	_height = height;
-
-	_fd = open(path, 0);
-	if (_fd == -1) {
-		int err = errno;
-		fprintf(stderr, "ERROR: failed to open path '%s': %s\n", path, strerror(err));
-		throw std::runtime_error("PATH");
-	}
-}
-
-void _validate_capabilities(int fd) {
-	struct v4l2_capability cap;
-	if (xioctl(_fd, VIDIOC_QUERYCAP, &cap) == -1) throw std::runtime_error("DEVICE CAPABILITIES");
-	
-	if (cap.capabilities & V4L2_CAP_VIDEO_CAPTURE == 0) {
-		fprintf(stderr, "ERROR: device does not support video capture");
-		throw std::runtime_error("DEVICE VIDEO CAPTURE");
-	}
 }
 }

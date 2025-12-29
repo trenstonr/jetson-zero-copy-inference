@@ -9,10 +9,10 @@ namespace jetson_middleware {
 
 // buffer = frame
 struct DeviceBuffer {
-	uint32_t index;	// v4l2 buffer idx
-	void *data;	// pointer to CUDA Unified Memory
-	size_t size;	// size of frame data (bytes)
-	int dmabuf_fd;	// DMA-BUF file descriptor
+	uint32_t index;		// v4l2 buffer idx
+	void* host_ptr;		// cpu memory
+	void* device_ptr; 	// gpu memory
+	size_t size;		// size of frame data (bytes)
 };
 
 class V4L2Device {
@@ -36,7 +36,7 @@ private:
 	uint32_t _width, _height; 	// frame dimensions (pixels)
 	uint32_t _pixel_fmt;		// may need to be changed / may be corrected by _set_format()
 	
-	std::vector<DeviceBuffer> _buffers;		// buffer pool
+	std::vector<DeviceBuffer> _buffers;	// buffer pool
 
 	void _set_format(); // (v4l2_format, VIDIOC_S_FMT)
 	
