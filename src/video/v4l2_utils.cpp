@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include <string.h>
 
-namespace jetson_middleware {
-
 const char* ioctl_to_str(unsigned long code) {
 	switch (code) {
 		case VIDIOC_QUERYCAP:   return "VIDIOC_QUERYCAP";
@@ -24,17 +22,15 @@ const char* ioctl_to_str(unsigned long code) {
 }
 
 int xioctl(int fd, unsigned long code, void* arg) {
-	int retval;
+	int res;
 	
-	do retval = ioctl(fd, code, arg);
-	while (retval == -1 && errno == EINTR); // retry if interrupted by a signal
+	do res = ioctl(fd, code, arg);
+	while (res < 0 && errno == EINTR); // retry if interrupted by a signal
 	
-	if (retval == -1) {
-		int err = errno;
-		fprintf(stderr, "ERROR: ioctl '%s', fd %d: %s\n", ioctl_to_str(code), fd, strerror(err));
-	}
+	//if (res < 0) {
+	//	int err = errno;
+	//	fprintf(stderr, "ERROR: ioctl '%s', fd %d: %s\n", ioctl_to_str(code), fd, strerror(err));
+	//}
 
-	return retval;
-}
-
+	return res;
 }
