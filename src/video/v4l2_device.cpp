@@ -129,4 +129,20 @@ void V4L2Device::request_buffers(uint32_t count) {
 	}
 }
 
+void V4L2Device::prime_buffers() {
+	if (_buffers.size() < 1)
+		throw std::runtime_error("Error: must call request_buffers before priming");
+	
+	v4l2_buffer buf {};
+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	buf.memory = V4L2_MEMORY_MMAP;
+
+	// Queue empty buffers to driver //
+	for (auto& b : _buffers) {
+		buf.index = b.index;
+		if (xioctl(_fd, VIDIOC_QBUF, &buf) < 0)
+			std::runtime_error("Error: failed to prime buffers (VIDIOC_QBUF)");
+	}
+}
+
 }
