@@ -171,8 +171,27 @@ DeviceBuffer& V4L2Device::aquire_buffer() {
 	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	buf.memory = V4L2_MEMORY_MMAP;
 	
-	if (xioctl(_fd, VIDIOC_DQBUF, &buf))
+	if (xioctl(_fd, VIDIOC_DQBUF, &buf) < 0)
 		throw std::runtime_error("Error: aquire_buffer() VIDIOC_DQBUF");
 
 	return _buffers[buf.index];
+}
+
+void V4L2Device::release_buffer() {
+	cudaStream_t stream;
+	if (cudaStreamCreate(&stream) != cudaSuccess)
+		throw std::runtime_error("Error: cudaStreamCreate");
+
+	if (cudaStreamSynchronize(stream) != cudaSuccess)
+		throw std::runtime_error("Error: cudaStreamSynchronize");
+	
+	cudaEvent_t event;
+	if (cudaEventCreate(&event) != cudaSuccess)
+		throw std::runtime_error("Error: cudaEventCreate");
+
+	if (cudaEventSynchronize(event) != cudaSuccess)
+		throw std::runtime_error("Error: cudaEvent Synchronize");
+
+	// Requeue buffer
+
 }
