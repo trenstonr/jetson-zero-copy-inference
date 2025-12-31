@@ -1,5 +1,5 @@
 # jetson-zero-copy-inference
-A C++ middleware for NVIDIA Jetson that enables direct memory sharing between camera capture and GPU processing to minimize latency and bandwidth in real-time vision pipelines.
+A C++ middleware for NVIDIA Jetson that enables direct memory sharing between camera capture and GPU processing using V4L2 (Video for Linux) and CUDA to minimize latency and bandwidth in real-time vision pipelines.
 
 ## File Structure
 ```
